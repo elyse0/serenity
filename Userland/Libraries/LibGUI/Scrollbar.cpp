@@ -297,7 +297,7 @@ void Scrollbar::scroll_by_page(const Gfx::IntPoint& click_position)
     float page_increment = range_size * rel_scrubber_size;
 
     if (click_position.primary_offset_for_orientation(orientation()) < scrubber_rect().primary_offset_for_orientation(orientation()))
-        set_value(value() - page_increment);
+        go_down(page_increment);
     else
         go_up(page_increment);
 }
