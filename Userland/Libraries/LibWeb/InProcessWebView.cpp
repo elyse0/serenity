@@ -259,7 +259,7 @@ void InProcessWebView::keydown_event(GUI::KeyEvent& event)
             horizontal_scrollbar().set_value(horizontal_scrollbar().value() - horizontal_scrollbar().step());
             break;
         case Key_PageDown:
-            vertical_scrollbar().set_value(vertical_scrollbar().value() + frame_inner_rect().height());
+            vertical_scrollbar().go_up(frame_inner_rect().height());
             break;
         case Key_PageUp:
             vertical_scrollbar().set_value(vertical_scrollbar().value() - frame_inner_rect().height());
