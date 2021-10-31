@@ -38,6 +38,13 @@ public:
     void set_page_step(int page_step);
     void set_jump_to_cursor(bool b) { m_jump_to_cursor = b; }
 
+    void go_up(int delta) { set_value(value() + delta); }
+    void go_down(int delta) { set_value(value() - delta); }
+    void go_up_in_page_steps(int page_steps) { set_value(value() + page_step() * page_steps); }
+    void go_down_in_page_steps(int page_steps) { set_value(value() - page_step() * page_steps); }
+    void go_up_in_steps(int steps) { set_value(value() + step() * steps); }
+    void go_down_in_steps(int steps) { set_value(value() - step() * steps); }
+
     Function<void(int)> on_change;
 
 protected:
