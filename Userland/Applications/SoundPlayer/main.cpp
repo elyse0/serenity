@@ -53,7 +53,7 @@ int main(int argc, char** argv)
     file_menu.add_action(GUI::CommonActions::make_open_action([&](auto&) {
         Optional<String> path = GUI::FilePicker::get_open_filepath(window, "Open sound file...");
         if (path.has_value()) {
-            player->play_file_path(path.value());
+            player->play_file_path(path.release_value());
         }
     }));
 

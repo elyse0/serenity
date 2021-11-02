@@ -38,7 +38,7 @@ Player::Player(Audio::ClientConnection& audio_client_connection)
     };
 }
 
-void Player::play_file_path(StringView path)
+void Player::play_file_path(String path)
 {
     if (path.is_null())
         return;
@@ -59,7 +59,7 @@ void Player::play_file_path(StringView path)
         return;
     }
 
-    m_loaded_filename = path;
+    m_loaded_filename = path.isolated_copy();
 
     file_name_changed(path);
     total_samples_changed(loader->total_samples());

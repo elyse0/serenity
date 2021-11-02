@@ -32,7 +32,7 @@ public:
     explicit Player(Audio::ClientConnection& audio_client_connection);
     virtual ~Player() { }
 
-    void play_file_path(StringView path);
+    void play_file_path(String path);
 
     Playlist& playlist() { return m_playlist; }
     StringView loaded_filename() const { return m_loaded_filename; }
