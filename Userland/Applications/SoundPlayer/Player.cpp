@@ -59,7 +59,7 @@ void Player::play_file_path(StringView path)
         return;
     }
 
-    m_loaded_filename = path;
+    m_loaded_filename = loader->file()->filename().view();
 
     file_name_changed(path);
     total_samples_changed(loader->total_samples());
