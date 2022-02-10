@@ -625,13 +625,22 @@ JS_DEFINE_NATIVE_FUNCTION(MathObject::asinh)
 // 21.3.2.6 Math.atan ( x ), https://tc39.es/ecma262/#sec-math.atan
 JS_DEFINE_NATIVE_FUNCTION(MathObject::atan)
 {
+    // Let n be ? ToNumber(x).
     auto number = TRY(vm.argument(0).to_number(global_object));
+
+    // 2. If n is NaN, n is +0𝔽, or n is -0𝔽, return n.
     if (number.is_nan() || number.is_positive_zero() || number.is_negative_zero())
         return number;
+
+    // 3. If n is +∞𝔽, return an implementation-approximated Number value representing π / 2.
     if (number.is_positive_infinity())
         return Value(M_PI_2);
+
+    // 4. If n is -∞𝔽, return an implementation-approximated Number value representing -π / 2.
     if (number.is_negative_infinity())
         return Value(-M_PI_2);
+
+    // 5. Return an implementation-approximated Number value representing the result of the inverse tangent of ℝ(n).
     return Value(::atan(number.as_double()));
 }
 
