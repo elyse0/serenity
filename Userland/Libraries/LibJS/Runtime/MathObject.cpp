@@ -840,28 +840,47 @@ JS_DEFINE_NATIVE_FUNCTION(MathObject::fround)
 // 21.3.2.18 Math.hypot ( ...args ), https://tc39.es/ecma262/#sec-math.hypot
 JS_DEFINE_NATIVE_FUNCTION(MathObject::hypot)
 {
+    // 1. Let coerced be a new empty List.
     Vector<Value> coerced;
+
+    // 2. For each element arg of args, do
     for (size_t i = 0; i < vm.argument_count(); ++i)
+        // a. Let n be ? ToNumber(arg).
+        // b. Append n to coerced.
         coerced.append(TRY(vm.argument(i).to_number(global_object)));
 
+    // 3. For each element number of coerced, do
     for (auto& number : coerced) {
+        // a. If number is +∞𝔽 or number is -∞𝔽, return +∞𝔽.
         if (number.is_positive_infinity() || number.is_negative_infinity())
             return js_infinity();
     }
 
+    // 4. Let onlyZero be true.
     auto only_zero = true;
+
+    // 5. For each element number of coerced, do
     double sum_of_squares = 0;
     for (auto& number : coerced) {
+        // a. If number is NaN, return NaN.
         if (number.is_nan() || number.is_positive_infinity())
             return number;
-        if (number.is_negative_infinity())
-            return js_infinity();
+
+        // b. If number is neither +0𝔽 nor -0𝔽, set onlyZero to false.
         if (!number.is_positive_zero() && !number.is_negative_zero())
             only_zero = false;
+
+        if (number.is_negative_infinity())
+            return js_infinity();
+
         sum_of_squares += number.as_double() * number.as_double();
     }
+
+    // 6. If onlyZero is true, return +0𝔽.
     if (only_zero)
         return Value(0);
+
+    // 7. Return an implementation-approximated Number value representing the square root of the sum of squares of the mathematical values of the elements of coerced.
     return Value(::sqrt(sum_of_squares));
 }
 
