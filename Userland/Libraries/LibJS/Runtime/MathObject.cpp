@@ -280,11 +280,24 @@ JS_DEFINE_NATIVE_FUNCTION(MathObject::min)
 // 21.3.2.35 Math.trunc ( x ), https://tc39.es/ecma262/#sec-math.trunc
 JS_DEFINE_NATIVE_FUNCTION(MathObject::trunc)
 {
+    // 1. Let n be ? ToNumber(x).
     auto number = TRY(vm.argument(0).to_number(global_object));
-    if (number.is_nan())
-        return js_nan();
-    if (number.as_double() < 0)
-        return MathObject::ceil(vm, global_object);
+
+    // 2. If n is NaN, n is +0𝔽, n is -0𝔽, n is +∞𝔽, or n is -∞𝔽, return n.
+    if (number.is_nan() || number.is_positive_zero() || number.is_negative_zero() || number.is_positive_infinity() || number.is_negative_infinity())
+        return number;
+
+    auto number_double = number.as_double();
+
+    // 3. If n < 1𝔽 and n > +0𝔽, return +0𝔽.
+    if (number_double < 1 && number_double > 0)
+        return Value(0);
+
+    // 4. If n < +0𝔽 and n > -1𝔽, return -0𝔽.
+    if (number_double < 0 && number_double > -1)
+        return Value(-0.0);
+
+    // 5. Return the integral Number nearest n in the direction of +0𝔽.
     return MathObject::floor(vm, global_object);
 }
 
