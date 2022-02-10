@@ -218,17 +218,31 @@ JS_DEFINE_NATIVE_FUNCTION(MathObject::round)
 // 21.3.2.24 Math.max ( ...args ), https://tc39.es/ecma262/#sec-math.max
 JS_DEFINE_NATIVE_FUNCTION(MathObject::max)
 {
+    // 1. Let coerced be a new empty List.
     Vector<Value> coerced;
+
+    // 2. For each element arg of args, do
     for (size_t i = 0; i < vm.argument_count(); ++i)
+        // a. Let n be ? ToNumber(arg).
+        // b. Append n to coerced.
         coerced.append(TRY(vm.argument(i).to_number(global_object)));
 
+    // 3. Let highest be -∞𝔽.
     auto highest = js_negative_infinity();
+
+    // 4. For each element number of coerced, do
     for (auto& number : coerced) {
+        // a. If number is NaN, return NaN.
         if (number.is_nan())
             return js_nan();
+
+        // b. If number is +0𝔽 and highest is -0𝔽, set highest to +0𝔽.
+        // c. If number > highest, set highest to number.
         if ((number.is_positive_zero() && highest.is_negative_zero()) || number.as_double() > highest.as_double())
             highest = number;
     }
+
+    // 5. Return highest.
     return highest;
 }
 
