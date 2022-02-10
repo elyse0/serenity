@@ -189,10 +189,29 @@ JS_DEFINE_NATIVE_FUNCTION(MathObject::ceil)
 // 21.3.2.28 Math.round ( x ), https://tc39.es/ecma262/#sec-math.round
 JS_DEFINE_NATIVE_FUNCTION(MathObject::round)
 {
-    auto value = TRY(vm.argument(0).to_number(global_object)).as_double();
-    double integer = ::ceil(value);
-    if (integer - 0.5 > value)
+    // Let n be ? ToNumber(x).
+    auto number = TRY(vm.argument(0).to_number(global_object));
+
+    // 2. If n is NaN, +∞𝔽, -∞𝔽, or an integral Number, return n.
+    if (number.is_nan() || number.is_positive_infinity() || number.is_negative_infinity() || number.is_integral_number())
+        return number;
+
+    auto number_double = number.as_double();
+
+    // 3. If n < 0.5𝔽 and n > +0𝔽, return +0𝔽.
+    if (number_double < 0.5 && number_double > 0)
+        return Value(0);
+
+    // 4. If n < +0𝔽 and n ≥ -0.5𝔽, return -0𝔽.
+    if (number_double < 0 && number_double >= -0.5)
+        return Value(-0.0);
+
+    double integer = ::ceil(number_double);
+    if (integer - 0.5 > number_double) {
         integer--;
+    }
+
+    // 5. Return the integral Number closest to n, preferring the Number closer to +∞ in the case of a tie.
     return Value(integer);
 }
 
