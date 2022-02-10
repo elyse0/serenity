@@ -532,9 +532,14 @@ JS_DEFINE_NATIVE_FUNCTION(MathObject::sign)
 // 21.3.2.11 Math.clz32 ( x ), https://tc39.es/ecma262/#sec-math.clz32
 JS_DEFINE_NATIVE_FUNCTION(MathObject::clz32)
 {
+    // Let n be ? ToUint32(x).
     auto number = TRY(vm.argument(0).to_u32(global_object));
+
+    // 2. Let p be the number of leading zero bits in the unsigned 32-bit binary representation of n.
+    // 3. Return 𝔽(p).
     if (number == 0)
         return Value(32);
+
     return Value(count_leading_zeroes(number));
 }
 
