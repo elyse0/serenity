@@ -472,9 +472,22 @@ JS_DEFINE_NATIVE_FUNCTION(MathObject::pow)
 // 21.3.2.14 Math.exp ( x ), https://tc39.es/ecma262/#sec-math.exp
 JS_DEFINE_NATIVE_FUNCTION(MathObject::exp)
 {
+    // 1. Let n be ? ToNumber(x).
     auto number = TRY(vm.argument(0).to_number(global_object));
-    if (number.is_nan())
-        return js_nan();
+
+    // 2. If n is NaN or n is +∞𝔽, return n.
+    if (number.is_nan() || number.is_positive_infinity())
+        return number;
+
+    // 3. If n is +0𝔽 or n is -0𝔽, return 1𝔽.
+    if (number.is_positive_zero() || number.is_negative_zero())
+        return Value(1);
+
+    // 4. If n is -∞𝔽, return +0𝔽.
+    if (number.is_negative_infinity())
+        return Value(0);
+
+    // 5. Return an implementation-approximated Number value representing the result of the exponential function of ℝ(n).
     return Value(::exp(number.as_double()));
 }
 
