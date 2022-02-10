@@ -110,6 +110,10 @@ JS_DEFINE_NATIVE_FUNCTION(MathObject::abs)
 // 21.3.2.27 Math.random ( ), https://tc39.es/ecma262/#sec-math.random
 JS_DEFINE_NATIVE_FUNCTION(MathObject::random)
 {
+    // Returns a Number value with positive sign, greater than or equal to +0𝔽 but strictly less than 1𝔽,
+    // chosen randomly or pseudo randomly with approximately uniform distribution over that range, using
+    // an implementation-defined algorithm or strategy. This function takes no arguments.
+
     double r = (double)get_random<u32>() / (double)UINT32_MAX;
     return Value(r);
 }
