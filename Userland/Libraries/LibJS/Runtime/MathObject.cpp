@@ -121,10 +121,21 @@ JS_DEFINE_NATIVE_FUNCTION(MathObject::random)
 // 21.3.2.32 Math.sqrt ( x ), https://tc39.es/ecma262/#sec-math.sqrt
 JS_DEFINE_NATIVE_FUNCTION(MathObject::sqrt)
 {
+    // 1. Let n be ? ToNumber(x).
     auto number = TRY(vm.argument(0).to_number(global_object));
-    if (number.is_nan())
+
+    // 2. If n is NaN, n is +0𝔽, n is -0𝔽, or n is +∞𝔽, return n.
+    if (number.is_nan() || number.is_positive_zero() || number.is_negative_zero() || number.is_positive_infinity())
+        return number;
+
+    auto number_double = number.as_double();
+
+    // 3. If n < +0𝔽, return NaN.
+    if (number_double < 0)
         return js_nan();
-    return Value(::sqrt(number.as_double()));
+
+    // 4. Return an implementation-approximated Number value representing the result of the square root of ℝ(n).
+    return Value(::sqrt(number_double));
 }
 
 // 21.3.2.16 Math.floor ( x ), https://tc39.es/ecma262/#sec-math.floor
