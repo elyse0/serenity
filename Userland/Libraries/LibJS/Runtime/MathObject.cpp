@@ -494,9 +494,18 @@ JS_DEFINE_NATIVE_FUNCTION(MathObject::exp)
 // 21.3.2.15 Math.expm1 ( x ), https://tc39.es/ecma262/#sec-math.expm1
 JS_DEFINE_NATIVE_FUNCTION(MathObject::expm1)
 {
+    // 1. Let n be ? ToNumber(x).
     auto number = TRY(vm.argument(0).to_number(global_object));
-    if (number.is_nan())
-        return js_nan();
+
+    // 2. If n is NaN, n is +0𝔽, n is -0𝔽, or n is +∞𝔽, return n.
+    if (number.is_nan() || number.is_positive_zero() || number.is_positive_infinity())
+        return number;
+
+    // 3. If n is -∞𝔽, return -1𝔽.
+    if (number.is_negative_infinity())
+        return Value(-1);
+
+    // 4. Return an implementation-approximated Number value representing the result of subtracting 1 from the exponential function of ℝ(n).
     return Value(::expm1(number.as_double()));
 }
 
