@@ -512,16 +512,21 @@ JS_DEFINE_NATIVE_FUNCTION(MathObject::expm1)
 // 21.3.2.29 Math.sign ( x ), https://tc39.es/ecma262/#sec-math.sign
 JS_DEFINE_NATIVE_FUNCTION(MathObject::sign)
 {
+    // Let n be ? ToNumber(x).
     auto number = TRY(vm.argument(0).to_number(global_object));
-    if (number.is_positive_zero())
-        return Value(0);
-    if (number.is_negative_zero())
-        return Value(-0.0);
-    if (number.as_double() > 0)
-        return Value(1);
-    if (number.as_double() < 0)
+
+    // 2. If n is NaN, n is +0𝔽, or n is -0𝔽, return n.
+    if (number.is_nan() || number.is_positive_zero() || number.is_negative_zero())
+        return number;
+
+    auto number_double = number.as_double();
+
+    // 3. If n < +0𝔽, return -1𝔽.
+    if (number_double < 0)
         return Value(-1);
-    return js_nan();
+
+    // 4. Return 1𝔽.
+    return Value(1);
 }
 
 // 21.3.2.11 Math.clz32 ( x ), https://tc39.es/ecma262/#sec-math.clz32
