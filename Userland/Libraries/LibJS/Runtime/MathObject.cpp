@@ -340,9 +340,18 @@ JS_DEFINE_NATIVE_FUNCTION(MathObject::cos)
 // 21.3.2.33 Math.tan ( x ), https://tc39.es/ecma262/#sec-math.tan
 JS_DEFINE_NATIVE_FUNCTION(MathObject::tan)
 {
+    // 1. Let n be ? ToNumber(x).
     auto number = TRY(vm.argument(0).to_number(global_object));
-    if (number.is_nan())
+
+    // 2. If n is NaN, n is +0𝔽, or n is -0𝔽, return n.
+    if (number.is_nan() || number.is_positive_zero() || number.is_negative_zero())
+        return number;
+
+    // 3. If n is +∞𝔽, or n is -∞𝔽, return NaN.
+    if (number.is_positive_infinity() || number.is_negative_infinity())
         return js_nan();
+
+    // 4. Return an implementation-approximated Number value representing the result of the tangent of ℝ(n).
     return Value(::tan(number.as_double()));
 }
 
