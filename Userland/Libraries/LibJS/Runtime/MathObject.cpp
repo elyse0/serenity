@@ -546,12 +546,21 @@ JS_DEFINE_NATIVE_FUNCTION(MathObject::clz32)
 // 21.3.2.2 Math.acos ( x ), https://tc39.es/ecma262/#sec-math.acos
 JS_DEFINE_NATIVE_FUNCTION(MathObject::acos)
 {
+    // Let n be ? ToNumber(x).
     auto number = TRY(vm.argument(0).to_number(global_object));
+
+    // 2. If n is NaN, n > 1𝔽, or n < -1𝔽, return NaN.
     if (number.is_nan() || number.as_double() > 1 || number.as_double() < -1)
         return js_nan();
-    if (number.as_double() == 1)
+
+    auto number_double = number.as_double();
+
+    // 3. If n is 1𝔽, return +0𝔽.
+    if (number_double == 1)
         return Value(0);
-    return Value(::acos(number.as_double()));
+
+    // 4. Return an implementation-approximated Number value representing the result of the inverse cosine of ℝ(n).
+    return Value(::acos(number_double));
 }
 
 // 21.3.2.3 Math.acosh ( x ), https://tc39.es/ecma262/#sec-math.acosh
