@@ -610,7 +610,16 @@ JS_DEFINE_NATIVE_FUNCTION(MathObject::asin)
 // 21.3.2.5 Math.asinh ( x ), https://tc39.es/ecma262/#sec-math.asinh
 JS_DEFINE_NATIVE_FUNCTION(MathObject::asinh)
 {
-    return Value(::asinh(TRY(vm.argument(0).to_number(global_object)).as_double()));
+    // 1. Let n be ? ToNumber(x).
+    auto number = TRY(vm.argument(0).to_number(global_object));
+
+    // 2. If n is NaN, n is +0𝔽, n is -0𝔽, n is +∞𝔽, or n is -∞𝔽, return n.
+    if (number.is_nan() || number.is_positive_zero() || number.is_negative_zero() || number.is_positive_infinity() || number.is_negative_infinity()) {
+        return number;
+    }
+
+    // 3. Return an implementation-approximated Number value representing the result of the inverse hyperbolic sine of ℝ(n).
+    return Value(::asinh(number.as_double()));
 }
 
 // 21.3.2.6 Math.atan ( x ), https://tc39.es/ecma262/#sec-math.atan
