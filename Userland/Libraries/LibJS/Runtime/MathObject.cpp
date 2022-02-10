@@ -816,10 +816,25 @@ JS_DEFINE_NATIVE_FUNCTION(MathObject::atan2)
 // 21.3.2.17 Math.fround ( x ), https://tc39.es/ecma262/#sec-math.fround
 JS_DEFINE_NATIVE_FUNCTION(MathObject::fround)
 {
+    // 1. Let n be ? ToNumber(x).
     auto number = TRY(vm.argument(0).to_number(global_object));
+
+    // 2. If n is NaN, return NaN.
     if (number.is_nan())
         return js_nan();
-    return Value((float)number.as_double());
+
+    // 3. If n is one of +0𝔽, -0𝔽, +∞𝔽, or -∞𝔽, return n.
+    if (number.is_positive_zero() || number.is_negative_zero() || number.is_positive_infinity() || number.is_negative_infinity())
+        return number;
+
+    // 4. Let n32 be the result of converting n to a value in IEEE 754-2019 binary32 format using roundTiesToEven mode.
+    auto number_float = (float)number.as_double();
+
+    // 5. Let n64 be the result of converting n32 to a value in IEEE 754-2019 binary64 format.
+    auto number_double = static_cast<double>(number_float);
+
+    // 6. Return the ECMAScript Number value corresponding to n64.
+    return Value(number_double);
 }
 
 // 21.3.2.18 Math.hypot ( ...args ), https://tc39.es/ecma262/#sec-math.hypot
