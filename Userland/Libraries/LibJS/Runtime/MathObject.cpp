@@ -887,8 +887,14 @@ JS_DEFINE_NATIVE_FUNCTION(MathObject::hypot)
 // 21.3.2.19 Math.imul ( x, y ), https://tc39.es/ecma262/#sec-math.imul
 JS_DEFINE_NATIVE_FUNCTION(MathObject::imul)
 {
+    // 1. Let a be ℝ(? ToUint32(x)).
     auto a = TRY(vm.argument(0).to_u32(global_object));
+
+    // 2. Let b be ℝ(? ToUint32(y)).
     auto b = TRY(vm.argument(1).to_u32(global_object));
+
+    // 3. Let product be (a × b) modulo 232.
+    // 4. If product ≥ 231, return 𝔽(product - 232); otherwise return 𝔽(product).
     return Value(static_cast<i32>(a * b));
 }
 
