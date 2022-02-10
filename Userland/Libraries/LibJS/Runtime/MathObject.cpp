@@ -82,14 +82,29 @@ MathObject::~MathObject()
 // 21.3.2.1 Math.abs ( x ), https://tc39.es/ecma262/#sec-math.abs
 JS_DEFINE_NATIVE_FUNCTION(MathObject::abs)
 {
+    // Let n be ? ToNumber(x).
     auto number = TRY(vm.argument(0).to_number(global_object));
+
+    // 2. If n is NaN, return NaN.
     if (number.is_nan())
         return js_nan();
+
+    // 3. If n is -0𝔽, return +0𝔽.
     if (number.is_negative_zero())
         return Value(0);
+
+    // 4. If n is -∞𝔽, return +∞𝔽.
     if (number.is_negative_infinity())
         return js_infinity();
-    return Value(number.as_double() < 0 ? -number.as_double() : number.as_double());
+
+    auto number_double = number.as_double();
+
+    // 5. If n < +0𝔽, return -n.
+    if (number_double < 0)
+        return -number_double;
+
+    // 6. Return n.
+    return Value(number_double);
 }
 
 // 21.3.2.27 Math.random ( ), https://tc39.es/ecma262/#sec-math.random
