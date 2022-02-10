@@ -355,58 +355,118 @@ JS_DEFINE_NATIVE_FUNCTION(MathObject::tan)
     return Value(::tan(number.as_double()));
 }
 
+// 6.1.6.1.3 Number::exponentiate ( base, exponent ), https://tc39.es/ecma262/#sec-numeric-types-number-exponentiate
+static Value exponentiate(Value base, Value exponent)
+{
+    // 1. If exponent is NaN, return NaN.
+    if (exponent.is_nan())
+        return js_nan();
+
+    // 2. If exponent is +0𝔽 or exponent is -0𝔽, return 1𝔽.
+    if (exponent.is_positive_zero() || exponent.is_negative_zero())
+        return Value(1);
+
+    // 3. If base is NaN, return NaN.
+    if (base.is_nan())
+        return js_nan();
+
+    // 4. If base is +∞𝔽, then
+    if (base.is_positive_infinity())
+        // a. If exponent > +0𝔽, return +∞𝔽. Otherwise, return +0𝔽.
+        return exponent.as_double() > 0 ? js_infinity() : Value(0);
+
+    // 5. If base is -∞𝔽, then
+    if (base.is_negative_infinity()) {
+        auto is_odd_integral_number = exponent.is_integral_number() && (exponent.as_i32() % 2 != 0);
+
+        // a. If exponent > +0𝔽, then
+        if (exponent.as_double() > 0)
+            // i. If exponent is an odd integral Number, return -∞𝔽. Otherwise, return +∞𝔽.
+            return is_odd_integral_number ? js_negative_infinity() : js_infinity();
+        // b. Else,
+        else
+            // i. If exponent is an odd integral Number, return -0𝔽. Otherwise, return +0𝔽.
+            return is_odd_integral_number ? Value(-0.0) : Value(0);
+    }
+
+    // 6. If base is +0𝔽, then
+    if (base.is_positive_zero())
+        // a. If exponent > +0𝔽, return +0𝔽. Otherwise, return +∞𝔽.
+        return exponent.as_double() > 0 ? Value(0) : js_infinity();
+
+    // 7. If base is -0𝔽, then
+    if (base.is_negative_zero()) {
+        auto is_odd_integral_number = exponent.is_integral_number() && (exponent.as_i32() % 2 != 0);
+
+        // a. If exponent > +0𝔽, then
+        if (exponent.as_double() > 0)
+            // i. If exponent is an odd integral Number, return -0𝔽. Otherwise, return +0𝔽.
+            return is_odd_integral_number ? Value(-0.0) : Value(0);
+        // b. Else,
+        else
+            // i. If exponent is an odd integral Number, return -∞𝔽. Otherwise, return +∞𝔽.
+            return is_odd_integral_number ? js_negative_infinity() : js_infinity();
+    }
+
+    // 8. Assert: base is finite and is neither +0𝔽 nor -0𝔽.
+    VERIFY(base.is_finite_number() && !base.is_positive_zero() && !base.is_negative_zero());
+
+    // 9. If exponent is +∞𝔽, then
+    if (exponent.is_positive_infinity()) {
+        auto absolute_base = fabs(base.as_double());
+
+        // a. If abs(ℝ(base)) > 1, return +∞𝔽.
+        if (absolute_base > 1)
+            return js_infinity();
+
+        // b. If abs(ℝ(base)) is 1, return NaN.
+        if (absolute_base == 1)
+            return js_nan();
+
+        // c. If abs(ℝ(base)) < 1, return +0𝔽.
+        if (absolute_base < 1)
+            return Value(0);
+    }
+
+    // 10. If exponent is -∞𝔽, then
+    if (exponent.is_negative_infinity()) {
+        auto absolute_base = fabs(base.as_double());
+
+        // a. If abs(ℝ(base)) > 1, return +0𝔽.
+        if (absolute_base > 1)
+            return Value(0);
+
+        // b. If abs(ℝ(base)) is 1, return NaN.
+        if (absolute_base == 1)
+            return js_nan();
+
+        // c. If abs(ℝ(base)) < 1, return +∞𝔽.
+        if (absolute_base < 1)
+            return js_infinity();
+    }
+
+    // 11. Assert: exponent is finite and is neither +0𝔽 nor -0𝔽.
+    VERIFY(exponent.is_finite_number() && !exponent.is_positive_zero() && !exponent.is_negative_zero());
+
+    // 12. If base < +0𝔽 and exponent is not an integral Number, return NaN.
+    if (base.as_double() < 0 && !exponent.is_integral_number())
+        return js_nan();
+
+    // 13. Return an implementation-approximated Number value representing the result of raising ℝ(base) to the ℝ(exponent) power.
+    return Value(::pow(base.as_double(), exponent.as_double()));
+}
+
 // 21.3.2.26 Math.pow ( base, exponent ), https://tc39.es/ecma262/#sec-math.pow
 JS_DEFINE_NATIVE_FUNCTION(MathObject::pow)
 {
+    // 1. Set base to ? ToNumber(base).
     auto base = TRY(vm.argument(0).to_number(global_object));
+
+    // 2. Set exponent to ? ToNumber(exponent).
     auto exponent = TRY(vm.argument(1).to_number(global_object));
-    if (exponent.is_nan())
-        return js_nan();
-    if (exponent.is_positive_zero() || exponent.is_negative_zero())
-        return Value(1);
-    if (base.is_nan())
-        return js_nan();
-    if (base.is_positive_infinity())
-        return exponent.as_double() > 0 ? js_infinity() : Value(0);
-    if (base.is_negative_infinity()) {
-        auto is_odd_integral_number = exponent.is_integral_number() && (exponent.as_i32() % 2 != 0);
-        if (exponent.as_double() > 0)
-            return is_odd_integral_number ? js_negative_infinity() : js_infinity();
-        else
-            return is_odd_integral_number ? Value(-0.0) : Value(0);
-    }
-    if (base.is_positive_zero())
-        return exponent.as_double() > 0 ? Value(0) : js_infinity();
-    if (base.is_negative_zero()) {
-        auto is_odd_integral_number = exponent.is_integral_number() && (exponent.as_i32() % 2 != 0);
-        if (exponent.as_double() > 0)
-            return is_odd_integral_number ? Value(-0.0) : Value(0);
-        else
-            return is_odd_integral_number ? js_negative_infinity() : js_infinity();
-    }
-    VERIFY(base.is_finite_number() && !base.is_positive_zero() && !base.is_negative_zero());
-    if (exponent.is_positive_infinity()) {
-        auto absolute_base = fabs(base.as_double());
-        if (absolute_base > 1)
-            return js_infinity();
-        else if (absolute_base == 1)
-            return js_nan();
-        else if (absolute_base < 1)
-            return Value(0);
-    }
-    if (exponent.is_negative_infinity()) {
-        auto absolute_base = fabs(base.as_double());
-        if (absolute_base > 1)
-            return Value(0);
-        else if (absolute_base == 1)
-            return js_nan();
-        else if (absolute_base < 1)
-            return js_infinity();
-    }
-    VERIFY(exponent.is_finite_number() && !exponent.is_positive_zero() && !exponent.is_negative_zero());
-    if (base.as_double() < 0 && !exponent.is_integral_number())
-        return js_nan();
-    return Value(::pow(base.as_double(), exponent.as_double()));
+
+    // 3. Return ! Number::exponentiate(base, exponent).
+    return exponentiate(base, exponent);
 }
 
 // 21.3.2.14 Math.exp ( x ), https://tc39.es/ecma262/#sec-math.exp
