@@ -141,10 +141,25 @@ JS_DEFINE_NATIVE_FUNCTION(MathObject::sqrt)
 // 21.3.2.16 Math.floor ( x ), https://tc39.es/ecma262/#sec-math.floor
 JS_DEFINE_NATIVE_FUNCTION(MathObject::floor)
 {
+    // 1. Let n be ? ToNumber(x).
     auto number = TRY(vm.argument(0).to_number(global_object));
-    if (number.is_nan())
-        return js_nan();
-    return Value(::floor(number.as_double()));
+
+    // 2. If n is NaN, n is +0𝔽, n is -0𝔽, n is +∞𝔽, or n is -∞𝔽, return n.
+    if (number.is_nan() || number.is_positive_zero() || number.is_negative_zero() || number.is_positive_infinity() || number.is_negative_infinity())
+        return number;
+
+    auto number_double = number.as_double();
+
+    // 3. If n < 1𝔽 and n > +0𝔽, return +0𝔽.
+    if (number_double < 1 && number_double > 0)
+        return Value(0);
+
+    // 4. If n is an integral Number, return n.
+    if (number.is_integral_number())
+        return number;
+
+    // 5. Return the greatest (closest to +∞) integral Number value that is not greater than n.
+    return Value(::floor(number_double));
 }
 
 // 21.3.2.10 Math.ceil ( x ), https://tc39.es/ecma262/#sec-math.ceil
